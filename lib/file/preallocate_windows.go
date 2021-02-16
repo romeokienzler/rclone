@@ -15,6 +15,7 @@ var (
 	ntdll                        = windows.NewLazySystemDLL("ntdll.dll")
 	ntQueryVolumeInformationFile = ntdll.NewProc("NtQueryVolumeInformationFile")
 	ntSetInformationFile         = ntdll.NewProc("NtSetInformationFile")
+	preAllocateMu                sync.Mutex
 )
 
 type fileAllocationInformation struct {
@@ -41,6 +42,9 @@ func PreAllocate(size int64, out *os.File) error {
 	if size <= 0 {
 		return nil
 	}
+
+	preAllocateMu.Lock()
+	defer preAllocateMu.Unlock()
 
 	var (
 		iosb       ioStatusBlock
